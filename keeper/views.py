@@ -8,7 +8,7 @@ import keeper.db
 @app.route('/')
 def index():
     app.logger.warning('sample message')
-    with get_db_cursor() as cursor:
-        cursor.execute("SELECT 1")
-        app.logger.warn("SELECT RESULT = {}, cursor = {}".format(cursor.fetchone(), cursor))
+    with get_db_cursor(commit=True) as cursor:
+        cursor.execute("SELECT count(*) FROM ACTIVITY")
+        app.logger.warn(" activity count = {}".format(cursor.fetchone()[0]))
     return render_template('index.html')
