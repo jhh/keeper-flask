@@ -1,23 +1,36 @@
 import os
 from flask import Flask
+from logging.config import dictConfig
 
 app = Flask(__name__)
 app.config.from_object("keeper.default_settings")
 app.config.from_envvar("KEEPER_SETTINGS")
 
-if not app.debug:
-    import logging
-    from logging.handlers import TimedRotatingFileHandler
+log_config = {
+    "version": 1,
+    "formatters": {
+        "debug": {"format": "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"},
+        "production": {"format": "%(levelname)s in %(module)s: %(message)s"},
+    },
+    "handlers": {
+        "debug": {
+            "class": "logging.StreamHandler",
+            "stream": "ext://flask.logging.wsgi_errors_stream",
+            "formatter": "debug",
+        },
+        "production": {
+            "class": "logging.StreamHandler",
+            "stream": "ext://flask.logging.wsgi_errors_stream",
+            "formatter": "production",
+        },
+    },
+    "root": {
+        "level": "INFO",
+        "handlers": ["debug" if app.config["DEBUG"] else "production"],
+    },
+}
 
-    # https://docs.python.org/3.6/library/logging.handlers.html#timedrotatingfilehandler
-    file_handler = TimedRotatingFileHandler(
-        os.path.join(app.config["LOG_DIR"], "keeper.log"), "midnight"
-    )
-    file_handler.setLevel(logging.WARNING)
-    file_handler.setFormatter(
-        logging.Formatter("<%(levelname)s> %(message)s")
-    )
-    app.logger.addHandler(file_handler)
+dictConfig(log_config)
 
 import keeper.db
 import keeper.views
