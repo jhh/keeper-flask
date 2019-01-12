@@ -10,7 +10,7 @@ class KeeperTestCase(unittest.TestCase):
 
     def test_index(self):
         rv = self.app.get('/')
-        self.assertIn('Welcome to Trapper Keeper', rv.data.decode())
+        self.assertIn('Stryke Force Keeper', rv.data.decode())
 
 
 if __name__ == '__main__':

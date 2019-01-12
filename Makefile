@@ -3,6 +3,9 @@ all: run
 clean:
 	rm -rf venv && rm -rf *.egg-info && rm -rf dist && rm -rf *.log*
 
+db:
+	FLASK_APP=keeper KEEPER_SETTINGS=../settings.cfg venv/bin/flask init-db
+
 venv:
 	virtualenv --python=python3 venv && venv/bin/python setup.py develop
 

@@ -19,7 +19,7 @@ RETURNING id
 """
 
 TRACE_SQL = """
-INSERT INTO trace(action_id, data) VALUES %s
+INSERT INTO trace(action_id, millis, data) VALUES %s
 """
 
 
@@ -38,7 +38,7 @@ def post_activity():
 @app.route("/actions", methods=["POST"])
 def post_action():
     doc = request.json
-    # app.logger.debug(doc)
+    # json.dump(doc, sys.stdout, indent=4)
     with get_db_cursor(commit=True) as cursor:
         cursor.execute(
             ACTION_SQL,
@@ -54,11 +54,13 @@ def post_action():
 
         action_id = cursor.fetchone()[0]
 
+        values = [(action_id, data.pop(0), data) for data in doc["traceData"]]
+
         execute_values(
             cursor,
             TRACE_SQL,
-            [(action_id, data) for data in doc["traceData"]],
-            template="(%s, %s)",
+            values,
+            template="(%s, %s, %s)",
             page_size=500,
         )
 

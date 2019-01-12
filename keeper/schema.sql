@@ -25,5 +25,6 @@ CREATE TABLE action (
 CREATE TABLE trace (
     id SERIAL PRIMARY KEY,
     action_id integer NOT NULL REFERENCES action(id) ON DELETE CASCADE,
+    millis integer NOT NULL DEFAULT 0,
     data real[] NOT NULL DEFAULT '{}'::real[]
 );
