@@ -10,6 +10,8 @@ black = "*"
 [packages]
 flask = "*"
 psycopg2 = "*"
+matplotlib = "*"
+pandas = "*"
 
 [requires]
 python_version = "3.7"

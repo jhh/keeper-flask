@@ -1,7 +1,7 @@
 {% extends "layout.html.j2" %}
 {% set active_page = "actions" %}
 
-{% block title %}Keeper • Activities{% endblock %}
+{% block title %}Keeper • Actions{% endblock %}
 {% block content %}
   <div class="starter-template">
     <h1>Actions</h1>
@@ -13,7 +13,7 @@
     {% for id, name, timestamp in actions %}
       <tr>
         <th  scope="row">{{ id }}</th>
-        <td>{{ name }}</td>
+        <td><a href="{{ url_for('motion_profile', action_id=id) }}">{{ name }}</a></td>
         <td>{{ timestamp|formatdatetime }}</td>
       </tr>
     {% endfor %}

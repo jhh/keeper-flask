@@ -33,5 +33,6 @@ log_config = {
 dictConfig(log_config)
 
 import keeper.db
+import keeper.filters
 import keeper.views
 import keeper.api

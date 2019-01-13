@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS trace;
 DROP TABLE IF EXISTS action;
 DROP TABLE IF EXISTS activity;
+DROP VIEW IF EXISTS action_trace;
 
 CREATE TABLE activity (
     id uuid PRIMARY KEY,
@@ -28,3 +29,12 @@ CREATE TABLE trace (
     millis integer NOT NULL DEFAULT 0,
     data real[] NOT NULL DEFAULT '{}'::real[]
 );
+
+CREATE VIEW action_trace AS  SELECT t.action_id,
+    t.millis,
+    u.measure,
+    u.value
+   FROM action a,
+    trace t,
+    LATERAL UNNEST(a.trace_measures, t.data) u(measure, value)
+  WHERE a.id = t.action_id;
