@@ -1,4 +1,5 @@
-{% extends "layout.html" %}
+{% extends "layout.html.j2" %}
+{% set active_page = "index" %}
 {% block title %}Keeper • Index{% endblock %}
 {% block content %}
   <div class="starter-template">
@@ -6,5 +7,5 @@
     <p class="lead">
       Stryke Force Trapper Keeper is a data logging tool for FRC robots.
     </p>
-  </div>>
+  </div>
 {% endblock %}

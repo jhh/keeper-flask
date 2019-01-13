@@ -1,0 +1,23 @@
+{% extends "layout.html.j2" %}
+{% set active_page = "actions" %}
+
+{% block title %}Keeper • Activities{% endblock %}
+{% block content %}
+  <div class="starter-template">
+    <h1>Actions</h1>
+    <table class="table table-sm table-striped">
+    <thead>
+    <tr><th scope="col">#</th><th scope="col">name</th><th scope="col">timestamp</th></tr>
+    </thead>
+    <tbody>
+    {% for id, name, timestamp in actions %}
+      <tr>
+        <th  scope="row">{{ id }}</th>
+        <td>{{ name }}</td>
+        <td>{{ timestamp|formatdatetime }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+  </div>
+{% endblock %}
