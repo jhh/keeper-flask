@@ -62,7 +62,7 @@ def motion_profile(action_id):
         'activity_id': results[1],
         'name': results[2],
         'timestamp': results[3],
-        'speed_profile': results[4]['vProg'],
+        'speed_profile': int(results[4]['vProg']) / 10,
         'direction': results[4]['direction'],
         'distance_profile': int(results[6][0]),
         'distance_actual': int(results[6][1]),
