@@ -1,0 +1,50 @@
+{% extends "layout.html.j2" %}
+{% set active_page = "motion_profile" %}
+
+{% block title %}Keeper • Action {{ action['id'] }}{% endblock %}
+{% block content %}
+  <div >
+    <h1>
+    {{ action['name'] }}
+    </h1>
+    <p class="text-muted">{{ action['timestamp']|formatdatetime }}</p>
+
+    <div class="table-responsive">
+        <table class="table table-sm">
+        <tr>
+        <th scope="row">motion profile</th>
+        <td class="text-muted">profile speed:</td><td>{{ action['speed_profile']|format_int }}<small>&nbsp;ticks/100&nbsp;msec</small></td>
+        <td class="text-muted">direction:</td><td>{{ action['direction'] }}<small>&nbsp;deg.</small></td>
+        <td class="text-muted">max forward:</td><td {% if action['forward_max'] > 1.0  -%}class="table-danger"{% endif -%}>{{ action['forward_max'] }}</td>
+        </tr>
+        <tr>
+        <th scope="row">distance</th>
+        <td class="text-muted">profile:</td><td>{{ action['distance_profile']|format_int }}<small>&nbsp;ticks</small></td>
+        <td class="text-muted">actual:</td><td>{{ action['distance_actual']|format_int }}<small>&nbsp;ticks</small></td>
+        <td class="text-muted">error:</td><td>{{ action['distance_error']|format_int }}<small>&nbsp;ticks</small></td>
+        </tr>
+        <tr>
+        <th scope="row">gyro yaw</th>
+        <td class="text-muted">start:</td><td>{{ action['gyro_start']|format_float_string }}<small>&nbsp;deg.</small></td>
+        <td class="text-muted">end:</td><td>{{ action['gyro_end']|format_float_string }}<small>&nbsp;deg.</small></td>
+        <td class="text-muted">delta:</td><td>{{ action['gyro_delta']|format_float_string }}<small>&nbsp;deg.</small></td>
+        </tr>
+        </table>
+    </div>
+
+    <img class="img-fluid" src="{{ url_for('motion_profile_plot', action_id=action['id']) }}" />
+  </div>
+
+
+<p>
+  <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#actionData">
+    Action Data
+  </button>
+</p>
+<div class="collapse" id="actionData">
+  <div class="card card-body">
+  <pre><code>{{ action|pprint }}</code></pre>
+  </div>
+</div>
+
+{% endblock %}
