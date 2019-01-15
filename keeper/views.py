@@ -1,10 +1,11 @@
 from flask import render_template, send_file
+import pandas as pd
 
 from keeper import app
-from keeper.db import get_db_cursor
+from keeper.db import get_db_connection, get_db_cursor
 
-# import keeper.db
-from keeper.plots import motion_plot
+from keeper.plots import motion_profile_plotdata
+from keeper.models import MotionProfile
 
 
 @app.route("/")
@@ -29,16 +30,11 @@ LIMIT 20
 """
 
 ACTION_DETAIL_SQL = """
-SELECT id, activity_id, name, timestamp, meta, measures, data
+SELECT id, activity_id, name, timestamp, meta
 FROM action
 WHERE id = %s
 """
 
-TRACE_MAX_FORWARD_SQL = """
-SELECT max(abs(value))
-FROM action_trace
-WHERE measure = 'forward' AND action_id = %s
-"""
 
 @app.route("/actions/", methods=["GET"])
 def actions():
@@ -49,35 +45,48 @@ def actions():
 
 @app.route("/actions/motion_profile/<action_id>", methods=["GET"])
 def motion_profile(action_id):
-    with get_db_cursor(commit=True) as cursor:
+    with get_db_connection() as connection:
+        cursor = connection.cursor()
         cursor.execute(ACTION_DETAIL_SQL, (action_id,))
-        results = cursor.fetchone()
-        cursor.execute(TRACE_MAX_FORWARD_SQL, (action_id,))
-        max_forward = cursor.fetchone()[0]
+        record = cursor.fetchone()
 
-    app.logger.info("max forward = {}".format(max_forward))
+        trace_df = pd.read_sql(
+            "SELECT * FROM action_trace WHERE action_id = {}".format(action_id),
+            con=connection,
+        )
+        connection.commit()
 
-    action = {
-        'id': results[0],
-        'activity_id': results[1],
-        'name': results[2],
-        'timestamp': results[3],
-        'speed_profile': int(results[4]['vProg']) / 10,
-        'direction': results[4]['direction'],
-        'distance_profile': int(results[6][0]),
-        'distance_actual': int(results[6][1]),
-        'distance_error': int(results[6][0]) - int(results[6][1]),
-        'gyro_start': float(results[4]['gyroStart']),
-        'gyro_end': float(results[4]['gyroEnd']),
-        'gyro_delta': float(results[4]['gyroEnd']) - float(results[4]['gyroStart']),
-        'forward_max': max_forward,
-    }
+    trace_df = trace_df.pivot(index="millis", columns="measure", values="value")
+    trace_df["vel_error"] = (
+        trace_df["setpoint_vel"] / 10.0 - trace_df["actual_vel"].abs()
+    )
+
+    meta = record[4]
+    action = MotionProfile(
+        record[0],
+        record[2],
+        record[3],
+        record[1],
+        int(record[4]["v_prog"] / 10),
+        meta["profile_ticks"],
+        meta["direction"],
+        meta["k_p"],
+        meta["good_enough"],
+        meta["actual_ticks"],
+        trace_df["actual_vel"].abs().max(),
+        trace_df["vel_error"].max(),
+        meta["gyro_start"],
+        meta["gyro_end"],
+        trace_df["forward"].max(),
+        trace_df["strafe"].max(),
+        trace_df["yaw"].max(),
+    )
 
     return render_template("motion_profile.html.j2", action=action)
 
 
 @app.route("/plots/motion_profile/<action_id>", methods=["GET"])
 def motion_profile_plot(action_id):
-    bytes_obj = motion_plot(action_id)
+    bytes_obj = motion_profile_plotdata(action_id)
 
     return send_file(bytes_obj, attachment_filename="plot.png", mimetype="image/png")

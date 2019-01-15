@@ -40,15 +40,63 @@ def get_db_cursor(commit=False):
         finally:
             cursor.close()
 
-def init_db():
-    with current_app.open_resource('schema.sql') as schema:
-        with get_db_cursor(commit=True) as cursor:
-            cursor.execute(schema.read())
 
-@click.command('init-db')
+def migrate_action_meta():
+    with get_db_cursor(commit=True) as cursor1:
+        cursor1.execute("SELECT id, data FROM action")
+        for record in cursor1:
+            with get_db_cursor(commit=True) as cursor2:
+                cursor2.execute(
+                    "UPDATE action SET meta = meta ||jsonb %s WHERE id = %s",
+                    (
+                        {
+                            "profile_ticks": int(record[1][0]),
+                            "actual_ticks": int(record[1][1]),
+                        },
+                        record[0],
+                    ),
+                )
+
+    with get_db_cursor(commit=True) as cursor1:
+        cursor1.execute("SELECT id, meta FROM action")
+        for record in cursor1:
+            id = record[0]
+            meta = record[1]
+            with get_db_cursor(commit=True) as cursor2:
+                cursor2.execute(
+                    "UPDATE action SET meta = %s WHERE id = %s",
+                    (
+                        {
+                            "dt": int(meta["dt"]),
+                            "t1": int(meta["t1"]),
+                            "t2": int(meta["t2"]),
+                            "k_p": float(meta["k_p"]),
+                            "tags": meta["tags"],
+                            "type": meta["type"],
+                            "v_prog": int(meta["vProg"]), # renamed
+                            "yaw": float(meta["azimuth"]), # renamed
+                            "gyro_end": float(meta["gyroEnd"]), # renamed
+                            "gyro_start": float(meta["gyroStart"]), # renamed
+                            "direction": float(meta["direction"]),
+                            "good_enough": int(meta["good_enough"]),
+                            "actual_ticks": int(meta["actual_ticks"]),
+                            "profile_ticks": int(meta["profile_ticks"]),
+                        },
+                        id
+                    ),
+                )
+
+    with get_db_cursor(commit=True) as cursor:
+        cursor.execute("ALTER TABLE action DROP COLUMN measures")
+        cursor.execute("ALTER TABLE action DROP COLUMN data")
+
+
+
+@click.command("db-migrate")
 @with_appcontext
-def init_db_command():
-    init_db()
-    click.echo('Initialized the database.')
+def migrate_db_command():
+    migrate_action_meta()
+    click.echo("Migrated the database.")
 
-app.cli.add_command(init_db_command)
+
+app.cli.add_command(migrate_db_command)

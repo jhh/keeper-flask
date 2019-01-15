@@ -1,19 +1,13 @@
 all: run
 
 clean:
-	rm -rf venv && rm -rf *.egg-info && rm -rf dist && rm -rf *.log*
+	pipenv --rm && rm -rf *.egg-info && rm -rf dist && rm -rf *.log*
 
-db:
-	FLASK_APP=keeper KEEPER_SETTINGS=../settings.cfg venv/bin/flask init-db
+run:
+	PIPENV_DONT_LOAD_ENV=1 pipenv run flask
 
-venv:
-	virtualenv --python=python3 venv && venv/bin/python setup.py develop
+requirements:
+	pipenv lock -r > $(HOME)/python/ansible/roles/keeper/files/requirements.txt
 
-run: venv
-	FLASK_APP=keeper KEEPER_SETTINGS=../settings.cfg venv/bin/flask run
-
-test: venv
-	KEEPER_SETTINGS=../settings.cfg venv/bin/python -m unittest discover -s tests
-
-sdist: venv test
-	venv/bin/python setup.py sdist
+install: requirements
+	pipenv run sdist

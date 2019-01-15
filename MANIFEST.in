@@ -1,3 +1,2 @@
 recursive-include keeper/templates *
 recursive-include keeper/static *
-include keeper/schema.sql
