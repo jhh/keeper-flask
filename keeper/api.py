@@ -13,8 +13,8 @@ VALUES (%s, %s, %s, %s, %s)
 """
 
 ACTION_SQL = """
-INSERT INTO action(activity_id, name, meta, measures, data, trace_measures)
-VALUES (%s, %s, %s, %s, %s, %s)
+INSERT INTO action(activity_id, name, meta, trace_measures)
+VALUES (%s, %s, %s, %s)
 RETURNING id
 """
 
@@ -46,8 +46,6 @@ def post_action():
                 doc["activity"],
                 doc["name"],
                 doc["meta"],
-                doc["measures"],
-                doc["data"],
                 doc["traceMeasures"],
             ),
         )

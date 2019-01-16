@@ -1,1 +1,2 @@
-from .motion_profile import MotionProfile
+from .action import Action
+from .motion_profile import MotionProfileAction

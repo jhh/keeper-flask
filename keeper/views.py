@@ -5,7 +5,7 @@ from keeper import app
 from keeper.db import get_db_connection, get_db_cursor
 
 from keeper.plots import motion_profile_plotdata
-from keeper.models import MotionProfile
+from keeper.models import MotionProfileAction
 
 
 @app.route("/")
@@ -23,18 +23,11 @@ def activities():
 
 
 ACTIONS_SQL = """
-SELECT id, name, timestamp
+SELECT id, name, timestamp, meta->'type' as type, meta->'tags' as tags
 FROM action
 ORDER BY timestamp DESC
 LIMIT 20
 """
-
-ACTION_DETAIL_SQL = """
-SELECT id, activity_id, name, timestamp, meta
-FROM action
-WHERE id = %s
-"""
-
 
 @app.route("/actions/", methods=["GET"])
 def actions():
@@ -45,44 +38,13 @@ def actions():
 
 @app.route("/actions/motion_profile/<action_id>", methods=["GET"])
 def motion_profile(action_id):
-    with get_db_connection() as connection:
-        cursor = connection.cursor()
-        cursor.execute(ACTION_DETAIL_SQL, (action_id,))
-        record = cursor.fetchone()
-
-        trace_df = pd.read_sql(
-            "SELECT * FROM action_trace WHERE action_id = {}".format(action_id),
-            con=connection,
-        )
-        connection.commit()
-
-    trace_df = trace_df.pivot(index="millis", columns="measure", values="value")
-    trace_df["vel_error"] = (
-        trace_df["setpoint_vel"] / 10.0 - trace_df["actual_vel"].abs()
-    )
-
-    meta = record[4]
-    action = MotionProfile(
-        record[0],
-        record[2],
-        record[3],
-        record[1],
-        int(record[4]["v_prog"] / 10),
-        meta["profile_ticks"],
-        meta["direction"],
-        meta["k_p"],
-        meta["good_enough"],
-        meta["actual_ticks"],
-        trace_df["actual_vel"].abs().max(),
-        trace_df["vel_error"].max(),
-        meta["gyro_start"],
-        meta["gyro_end"],
-        trace_df["forward"].max(),
-        trace_df["strafe"].max(),
-        trace_df["yaw"].max(),
-    )
-
+    action = MotionProfileAction.by_id(action_id)
     return render_template("motion_profile.html.j2", action=action)
+
+
+@app.route("/actions/test/<action_id>", methods=["GET"])
+def test(action_id):
+    return action_id
 
 
 @app.route("/plots/motion_profile/<action_id>", methods=["GET"])
