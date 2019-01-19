@@ -11,7 +11,7 @@
     </thead>
     <tbody>
     {% for id, name, timestamp, type, tags in actions %}
-      {% if type == 'motion_profile' %}
+      {% if type == 'motion_profile' or type == 'twist' %}
         {% set view = 'motion_profile' %}
       {% else %}
         {% set view = 'test' %}

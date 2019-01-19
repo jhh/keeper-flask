@@ -33,5 +33,6 @@ def motion_profile_plotdata(action_id):
 
     bytes_image = io.BytesIO()
     fig.savefig(bytes_image, format="png")
+    plt.close(fig)
     bytes_image.seek(0)
     return bytes_image
