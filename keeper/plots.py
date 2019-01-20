@@ -20,7 +20,7 @@ def motion_profile_plotdata(action_id):
         vel_df.actual_vel = vel_df.actual_vel * -1
     vel_df.setpoint_vel = vel_df.setpoint_vel / 10.0
     vel_df.profile_vel = vel_df.profile_vel / 10.0
-    vel_df.ticks_error = vel_df.actual_ticks - vel_df.profile_ticks
+    vel_df["ticks_error"] = vel_df.actual_ticks - vel_df.profile_ticks
 
     fig, (vel_ax, ticks_ax, gyro_ax) = plt.subplots(
         nrows=3, ncols=1, sharex=True, figsize=(10, 15)
@@ -29,6 +29,13 @@ def motion_profile_plotdata(action_id):
     ticks_ax.set(title="Distance Error", ylabel="ticks")
     gyro_ax.set(title="Gyro Angle", ylabel="degrees")
     vel_df[["profile_vel", "setpoint_vel", "actual_vel"]].plot(ax=vel_ax, grid=False)
+
+    if 'drive_current' in vel_df.columns:
+        i_ax = vel_ax.twinx()
+        vel_df.drive_current.plot(ax=i_ax, color="r")
+        i_ax.set_ylabel("current", color="r")
+        i_ax.tick_params("y", colors="r")
+
     vel_df.ticks_error.plot(ax=ticks_ax, grid=False, legend=False)
     vel_df.gyro_angle.plot(ax=gyro_ax, grid=False, legend=False)
 
