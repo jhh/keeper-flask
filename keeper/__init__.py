@@ -8,7 +8,10 @@ from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 from logging.config import dictConfig
 
-app = Dash(__name__)
+external_stylesheets = [
+    "https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+]
+app = Dash(__name__, external_stylesheets=external_stylesheets)
 server = app.server
 server.config.from_object("keeper.default_settings")
 server.config.from_envvar("KEEPER_SETTINGS")
@@ -21,31 +24,44 @@ app.layout = html.Div(
     [dcc.Location(id="url", refresh=False), html.Div(id="page-content")]
 )
 
-index_layout = html.Div(
-    [
-        dcc.Link("Twist", href="/twist"),
-    ]
-)
-
+index_layout = html.Div([dcc.Link("Twist", href="/twist")])
 
 
 twist_layout = html.Div(
     [
-        dcc.Input(id="action-id", value="409", type="text"),
-        html.Button(id="submit-button", n_clicks=0, children="Submit"),
+        dcc.Dropdown(id="action-id"),
+        html.Button(id="submit-button", n_clicks=0, children="Refresh"),
         dcc.Graph(id="twist-graph"),
         html.Br(),
         dcc.Link("Go back to home", href="/"),
-    ]
+    ],
+    className="container",
 )
 
+ACTIONS_SQL = """
+SELECT id, name, timestamp
+FROM action
+ORDER BY timestamp DESC
+LIMIT 20
+"""
 
-@app.callback(
-    Output("twist-graph", "figure"),
-    [Input("submit-button", "n_clicks")],
-    [State("action-id", "value")],
-)
-def update_output_div(n_clicks, action_id):
+
+@app.callback(Output("action-id", "options"), [Input("submit-button", "n_clicks")])
+def update_action_dropdown(n_click):
+    with get_db_cursor(commit=True) as cursor:
+        cursor.execute(ACTIONS_SQL)
+        return [
+            dict(
+                value=row[0], label=f"{row[1]} - {row[2].strftime('%d %b %Y %I:%M %p')}"
+            )
+            for row in cursor
+        ]
+
+
+@app.callback(Output("twist-graph", "figure"), [Input("action-id", "value")])
+def update_output_div(action_id):
+    if action_id is None:
+        return {"data": []}
     with get_db_connection() as connection:
         trace_df = pd.read_sql(
             "SELECT * FROM action_trace WHERE action_id = {}".format(action_id),
