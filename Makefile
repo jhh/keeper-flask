@@ -1,3 +1,8 @@
+PGDUMP=/usr/pgsql-11/bin/pg_dump
+PGDUMP_OPTS=--clean --create --no-owner --no-password
+DB=keeper
+SQLFILE := $(shell mktemp /tmp/keeper.XXXXX).sql
+
 all: run
 
 clean:
@@ -11,3 +16,14 @@ requirements:
 
 install: requirements
 	pipenv run sdist
+
+dump-db:
+	ssh hub \
+	"$(PGDUMP) $(PGDUMP_OPTS) $(DB) > $(SQLFILE)"
+	echo $(SQLFILE)
+
+copy-db: dump-db
+	scp -C hub:$(SQLFILE) .
+
+init-db: copy-db
+	psql < $(shell basename $(SQLFILE)) && rm $(shell basename $(SQLFILE))

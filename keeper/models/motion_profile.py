@@ -67,7 +67,7 @@ class MotionProfileAction(Action):
 
         trace_df = trace_df.pivot(index="millis", columns="measure", values="value")
         trace_df["vel_error"] = (
-            trace_df["setpoint_vel"] / 10.0 - trace_df["actual_vel"].abs()
+            trace_df.setpoint_vel / 10.0 - trace_df.actual_vel.abs()
         )
 
         meta = record[4]
@@ -82,11 +82,11 @@ class MotionProfileAction(Action):
             profile_direction=meta["direction"],
             profile_k_p=meta["k_p"],
             profile_good_enough=meta["good_enough"],
-            actual_distance=meta["actual_ticks"],
+            actual_distance=trace_df.actual_ticks.iloc[-1],
             actual_speed_max=trace_df.actual_vel.abs().max(),
             speed_max_error=trace_df.vel_error.max(),
-            gyro_start=meta["gyro_start"],
-            gyro_end=meta["gyro_end"],
+            gyro_start=trace_df.gyro_angle.iloc[0],
+            gyro_end=trace_df.gyro_angle.iloc[-1],
             swerve_forward_max=trace_df.forward.max(),
             swerve_strafe_max=trace_df.strafe.max(),
             swerve_yaw_max=trace_df.yaw.max(),
