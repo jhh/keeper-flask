@@ -2,7 +2,7 @@ import json
 import psycopg2
 from psycopg2.extras import Json, execute_values
 from flask import request
-from keeper import app
+from keeper import server
 from keeper.db import get_db_cursor
 
 psycopg2.extensions.register_adapter(dict, Json)
@@ -23,10 +23,10 @@ INSERT INTO trace(action_id, millis, data) VALUES %s
 """
 
 
-@app.route("/activities", methods=["POST"])
+@server.route("/activities", methods=["POST"])
 def post_activity():
     doc = request.json
-    # app.logger.debug(doc)
+    # server.logger.debug(doc)
     with get_db_cursor(commit=True) as cursor:
         cursor.execute(
             ACTIVITY_SQL,
@@ -35,7 +35,7 @@ def post_activity():
     return "OK - {}".format(doc["id"])
 
 
-@app.route("/actions", methods=["POST"])
+@server.route("/actions", methods=["POST"])
 def post_action():
     doc = request.json
     # json.dump(doc, sys.stdout, indent=4)

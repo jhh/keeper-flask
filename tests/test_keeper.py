@@ -6,10 +6,10 @@ import keeper
 class KeeperTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.app = keeper.app.test_client()
+        self.app = keeper.server.test_client()
 
     def test_index(self):
-        rv = self.app.get('/')
+        rv = self.server.get('/')
         self.assertIn('Stryke Force Keeper', rv.data.decode())
 
 
