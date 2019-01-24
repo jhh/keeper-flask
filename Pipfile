@@ -22,6 +22,10 @@ matplotlib = "~=3.0"
 pandas = "*"
 numpy = "~=1.16.0"
 gunicorn = "*"
+dash = "*"
+dash-html-components = "*"
+dash-core-components = "*"
+dash-table = "*"
 
 [requires]
 python_version = "3.7"

@@ -4,12 +4,12 @@ from flask import current_app
 from flask.cli import with_appcontext
 from psycopg2.pool import ThreadedConnectionPool
 from urllib.parse import urlparse
-from keeper import app
+from keeper import server
 
-url = urlparse(app.config["DB_URL"])
+url = urlparse(server.config["DB_URL"])
 pool = ThreadedConnectionPool(
-    app.config["DB_MIN_CONN"],
-    app.config["DB_MAX_CONN"],
+    server.config["DB_MIN_CONN"],
+    server.config["DB_MAX_CONN"],
     database=url.path[1:],
     user=url.username,
     password=url.password,
@@ -17,7 +17,7 @@ pool = ThreadedConnectionPool(
     port=url.port,
 )
 
-app.logger.info("initialized pool: {}".format(pool))
+server.logger.info("initialized pool: {}".format(pool))
 
 
 @contextmanager
@@ -99,4 +99,4 @@ def migrate_db_command():
     click.echo("Migrated the database.")
 
 
-app.cli.add_command(migrate_db_command)
+server.cli.add_command(migrate_db_command)

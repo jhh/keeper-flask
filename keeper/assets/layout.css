@@ -1,0 +1,25 @@
+.container {
+  display: grid;
+  grid-template-columns: 40px 400px 100px auto 40px;
+  grid-template-rows: auto;
+}
+
+.pageHeader {
+    grid-column-start: 2;
+    grid-column-end: 6;
+}
+
+.indexLink {
+    grid-column-start: 2;
+    grid-column-end: 3;
+}
+
+#action-id {
+    grid-column-start: 2;
+    grid-column-end: 3;
+}
+
+#twist-graph {
+    grid-column-start: 2;
+    grid-column-end: 5;
+}

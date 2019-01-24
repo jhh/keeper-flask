@@ -1,2 +1,1 @@
-recursive-include keeper/templates *
-recursive-include keeper/static *
+recursive-include keeper/assets *
