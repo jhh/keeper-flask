@@ -8,10 +8,7 @@ from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 from logging.config import dictConfig
 
-external_stylesheets = [
-    "https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
-]
-app = Dash(__name__, external_stylesheets=external_stylesheets)
+app = Dash(__name__)
 server = app.server
 server.config.from_object("keeper.default_settings")
 server.config.from_envvar("KEEPER_SETTINGS")
@@ -29,11 +26,11 @@ index_layout = html.Div([dcc.Link("Twist", href="/twist")])
 
 twist_layout = html.Div(
     [
+        html.H1("Twist Plot", className="pageHeader"),
         dcc.Dropdown(id="action-id"),
         html.Button(id="submit-button", n_clicks=0, children="Refresh"),
         dcc.Graph(id="twist-graph"),
-        html.Br(),
-        dcc.Link("Go back to home", href="/"),
+        html.Div([dcc.Link("Go back to home", href="/")], className="indexLink"),
     ],
     className="container",
 )
@@ -136,6 +133,4 @@ log_config = {
 dictConfig(log_config)
 
 import keeper.db
-import keeper.filters
-import keeper.views
 import keeper.api
