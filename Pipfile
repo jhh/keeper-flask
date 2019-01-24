@@ -16,9 +16,6 @@ rope = "*"
 python-dotenv = "*"
 
 [packages]
-flask = "~=1.0"
-psycopg2 = "*"
-matplotlib = "~=3.0"
 pandas = "*"
 numpy = "~=1.16.0"
 gunicorn = "*"
@@ -26,6 +23,7 @@ dash = "*"
 dash-html-components = "*"
 dash-core-components = "*"
 dash-table = "*"
+psycopg2 = "*"
 
 [requires]
 python_version = "3.7"
