@@ -8,16 +8,19 @@ import pandas as pd
 from keeper.db import get_db_connection, get_db_cursor
 from keeper import app
 
-twist_layout = html.Div(
-    [
-        html.H1("Twist Plot", className="pageHeader"),
+header = html.Div(className="pageHeader", children=[html.H1("Twist Plot")], )
+controls = html.Div(
+    className="twistControls",
+    children=[
         dcc.Dropdown(id="action-id"),
+        dcc.Dropdown(id="secondary-id"),
         html.Button(id="submit-button", n_clicks=0, children="Refresh"),
-        dcc.Graph(id="twist-graph"),
-        html.Div([dcc.Link("Go back to home", href="/")], className="indexLink"),
     ],
-    className="container",
 )
+graph = html.Div(className="twistGraph", children=dcc.Graph(id="twist-graph"))
+home = html.Div(className="indexLink", children=[dcc.Link("Go back to home", href="/")])
+
+twist_layout = html.Div(className="container", children=[header, controls, graph, home])
 
 ACTIONS_SQL = """
 SELECT id, name, timestamp

@@ -1,25 +1,23 @@
 .container {
   display: grid;
-  grid-template-columns: 40px 400px 100px auto 40px;
-  grid-template-rows: auto;
+  grid-template-columns: 40px auto 40px;
 }
 
-.pageHeader {
-    grid-column-start: 2;
-    grid-column-end: 6;
+.container .pageHeader {
+  grid-column: 2/3;
 }
 
-.indexLink {
-    grid-column-start: 2;
-    grid-column-end: 3;
+.container .twistControls {
+    grid-column: 2/3;
+    display: grid;
+    grid-template-columns: 2fr 2fr 1fr;
+    grid-column-gap: 10px;
 }
 
-#action-id {
-    grid-column-start: 2;
-    grid-column-end: 3;
+.container .twistGraph {
+    grid-column: 2/3;
 }
 
-#twist-graph {
-    grid-column-start: 2;
-    grid-column-end: 5;
+.container .indexLink {
+    grid-column: 2/3;
 }
