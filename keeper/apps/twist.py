@@ -9,23 +9,6 @@ import pandas as pd
 from keeper.db import get_db_connection, get_db_cursor
 from keeper import app
 
-header = html.Div(className="pageHeader", children=[html.H1("Twist Plot")])
-controls = html.Div(
-    className="twistControls",
-    children=[
-        dcc.Dropdown(id="primary-action-id"),
-        dcc.Dropdown(id="secondary-action-id"),
-        html.Button(id="submit-button", children="Refresh"),
-    ],
-)
-graph = html.Div(className="twistGraph", children=dcc.Graph(id="twist-graph"))
-home = html.Div(className="indexLink", children=[dcc.Link("Go back to home", href="/")])
-store = dcc.Store(id="actions-list")
-
-twist_layout = html.Div(
-    className="container", children=[header, controls, graph, home, store]
-)
-
 ACTIONS_SQL = """
 SELECT id, name, timestamp
 FROM action
@@ -35,13 +18,7 @@ LIMIT 20
 """
 
 
-def actions_list():
-    pass
-
-
-# Output("primary-action-id", "options"), Output("secondary-action-id", "options")
-@app.callback(Output("actions-list", "data"), [Input("submit-button", "n_clicks")])
-def update_actions_list(n_clicks):
+def action_list():
     with get_db_cursor(commit=True) as cursor:
         cursor.execute(ACTIONS_SQL)
         return [
@@ -50,6 +27,29 @@ def update_actions_list(n_clicks):
             )
             for row in cursor
         ]
+
+
+header = html.Div(className="pageHeader", children=[html.H1("Twist Plot")])
+controls = html.Div(
+    className="twistControls",
+    children=[
+        dcc.Dropdown(id="primary-action-id", options=action_list()),
+        dcc.Dropdown(id="secondary-action-id", options=action_list()),
+        html.Button(id="submit-button", children="Refresh"),
+    ],
+)
+graph = html.Div(className="twistGraph", children=dcc.Graph(id="twist-graph"))
+home = html.Div(className="indexLink", children=[dcc.Link("Go back to home", href="/")])
+store = dcc.Store(id="actions-list", storage_type="session")
+
+twist_layout = html.Div(
+    className="container", children=[header, controls, graph, home, store]
+)
+
+
+@app.callback(Output("actions-list", "data"), [Input("submit-button", "n_clicks")])
+def update_actions_list(n_clicks):
+    return action_list()
 
 
 @app.callback(Output("primary-action-id", "options"), [Input("actions-list", "data")])
@@ -75,6 +75,7 @@ def plot_data(action_id, primary):
             "SELECT * FROM action_trace WHERE action_id = {}".format(action_id),
             con=connection,
         )
+        connection.commit()
 
     twist_df = trace_df.pivot(index="millis", columns="measure", values="value")
     if twist_df.actual_vel.mean() < 0:
