@@ -35,7 +35,7 @@ controls = html.Div(
     children=[
         dcc.Dropdown(id="primary-action-id", options=action_list()),
         dcc.Dropdown(id="secondary-action-id", options=action_list()),
-        html.Button(id="submit-button", children="Refresh"),
+        html.Button("Refresh", id="submit-button"),
     ],
 )
 graph = html.Div(className="twistGraph", children=dcc.Graph(id="twist-graph"))

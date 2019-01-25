@@ -5,6 +5,7 @@ from dash import Dash
 from logging.config import dictConfig
 
 app = Dash(__name__)
+app.title = "Keeper"
 server = app.server
 server.config.from_object("keeper.default_settings")
 server.config.from_envvar("KEEPER_SETTINGS")
