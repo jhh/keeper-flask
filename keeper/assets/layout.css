@@ -1,6 +1,7 @@
 .container {
   display: grid;
   grid-template-columns: 40px auto 40px;
+  grid-row-gap: 20px;
 }
 
 .container .pageHeader {

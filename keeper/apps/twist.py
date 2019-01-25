@@ -2,36 +2,46 @@ from dash import Dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
+from dash.exceptions import PreventUpdate
 import plotly.graph_objs as go
 import pandas as pd
 
 from keeper.db import get_db_connection, get_db_cursor
 from keeper import app
 
-header = html.Div(className="pageHeader", children=[html.H1("Twist Plot")], )
+header = html.Div(className="pageHeader", children=[html.H1("Twist Plot")])
 controls = html.Div(
     className="twistControls",
     children=[
-        dcc.Dropdown(id="action-id"),
-        dcc.Dropdown(id="secondary-id"),
-        html.Button(id="submit-button", n_clicks=0, children="Refresh"),
+        dcc.Dropdown(id="primary-action-id"),
+        dcc.Dropdown(id="secondary-action-id"),
+        html.Button(id="submit-button", children="Refresh"),
     ],
 )
 graph = html.Div(className="twistGraph", children=dcc.Graph(id="twist-graph"))
 home = html.Div(className="indexLink", children=[dcc.Link("Go back to home", href="/")])
+store = dcc.Store(id="actions-list")
 
-twist_layout = html.Div(className="container", children=[header, controls, graph, home])
+twist_layout = html.Div(
+    className="container", children=[header, controls, graph, home, store]
+)
 
 ACTIONS_SQL = """
 SELECT id, name, timestamp
 FROM action
+WHERE meta->>'type' = 'twist'
 ORDER BY timestamp DESC
 LIMIT 20
 """
 
 
-@app.callback(Output("action-id", "options"), [Input("submit-button", "n_clicks")])
-def update_action_dropdown(n_click):
+def actions_list():
+    pass
+
+
+# Output("primary-action-id", "options"), Output("secondary-action-id", "options")
+@app.callback(Output("actions-list", "data"), [Input("submit-button", "n_clicks")])
+def update_actions_list(n_clicks):
     with get_db_cursor(commit=True) as cursor:
         cursor.execute(ACTIONS_SQL)
         return [
@@ -42,10 +52,24 @@ def update_action_dropdown(n_click):
         ]
 
 
-@app.callback(Output("twist-graph", "figure"), [Input("action-id", "value")])
-def update_output_div(action_id):
+@app.callback(Output("primary-action-id", "options"), [Input("actions-list", "data")])
+def update_primary_options(data):
+    if data is None:
+        raise PreventUpdate
+    return data
+
+
+@app.callback(Output("secondary-action-id", "options"), [Input("actions-list", "data")])
+def update_secondary_options(data):
+    if data is None:
+        raise PreventUpdate
+    return data
+
+
+def plot_data(action_id, primary):
     if action_id is None:
-        return {"data": []}
+        return []
+
     with get_db_connection() as connection:
         trace_df = pd.read_sql(
             "SELECT * FROM action_trace WHERE action_id = {}".format(action_id),
@@ -59,6 +83,39 @@ def update_output_div(action_id):
     twist_df.profile_vel = twist_df.profile_vel / 10.0
     twist_df["ticks_error"] = twist_df.actual_ticks - twist_df.profile_ticks
 
+    alpha = 1 if primary else 0.25
+    name = "primary" if primary else "secondary"
+
+    return [
+        go.Scatter(
+            name=f"{name} profile",
+            x=twist_df.index,
+            y=twist_df.profile_vel,
+            line={"color": f"rgba(22, 11, 211, {alpha})"},
+        ),
+        go.Scatter(
+            name=f"{name} setpoint",
+            x=twist_df.index,
+            y=twist_df.setpoint_vel,
+            line={"color": f"rgba(22, 211, 11, {alpha})"},
+        ),
+        go.Scatter(
+            name=f"{name} actual",
+            x=twist_df.index,
+            y=twist_df.actual_vel,
+            line={"color": f"rgba(211, 22, 11, {alpha})"},
+        ),
+    ]
+
+
+@app.callback(
+    Output("twist-graph", "figure"),
+    [Input("primary-action-id", "value"), Input("secondary-action-id", "value")],
+)
+def update_output_div(primary_id, secondary_id):
+
+    data = plot_data(primary_id, True) + plot_data(secondary_id, False)
+
     layout = {
         "title": "Velocity",
         "xaxis": {"title": "milliseconds"},
@@ -66,18 +123,15 @@ def update_output_div(action_id):
         "yaxis2": {"title": "amps", "side": "right", "overlaying": "y"},
         "height": 600,
     }
-    return {
-        "data": [
-            go.Scatter(name="profile", x=twist_df.index, y=twist_df.profile_vel),
-            go.Scatter(name="setpoint", x=twist_df.index, y=twist_df.setpoint_vel),
-            go.Scatter(name="actual", x=twist_df.index, y=twist_df.actual_vel),
-            go.Scatter(
-                name="current",
-                x=twist_df.index,
-                y=twist_df.drive_current,
-                line={"color": "rgba(22, 12, 204, 0.1)"},
-                yaxis="y2",
-            ),
-        ],
-        "layout": layout,
-    }
+    return {"data": data, "layout": layout}
+
+
+# [
+#     go.Scatter(
+#         name="current",
+#         x=twist_df.index,
+#         y=twist_df.drive_current,
+#         line={"color": "rgba(22, 12, 204, 0.1)"},
+#         yaxis="y2",
+#     ),
+# ]
