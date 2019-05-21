@@ -1,32 +1,34 @@
-import click
+"""
+PostgreSQL connection management.
+"""
 from contextlib import contextmanager
-from flask import current_app
+from urllib.parse import urlparse
+import click
 from flask.cli import with_appcontext
 from psycopg2.pool import ThreadedConnectionPool
-from urllib.parse import urlparse
 from keeper import server
 
-url = urlparse(server.config["DB_URL"])
-pool = ThreadedConnectionPool(
+URL = urlparse(server.config["DB_URL"])
+_pool = ThreadedConnectionPool(  # pylint: disable=invalid-name
     server.config["DB_MIN_CONN"],
     server.config["DB_MAX_CONN"],
-    database=url.path[1:],
-    user=url.username,
-    password=url.password,
-    host=url.hostname,
-    port=url.port,
+    database=URL.path[1:],
+    user=URL.username,
+    password=URL.password,
+    host=URL.hostname,
+    port=URL.port,
 )
 
-server.logger.info("initialized pool: {}".format(pool))
+server.logger.info("initialized pool: {}".format(_pool))
 
 
 @contextmanager
 def get_db_connection():
     try:
-        connection = pool.getconn()
+        connection = _pool.getconn()
         yield connection
     finally:
-        pool.putconn(connection)
+        _pool.putconn(connection)
 
 
 @contextmanager
@@ -60,7 +62,7 @@ def migrate_action_meta():
     with get_db_cursor(commit=True) as cursor1:
         cursor1.execute("SELECT id, meta FROM action")
         for record in cursor1:
-            id = record[0]
+            record_id = record[0]
             meta = record[1]
             with get_db_cursor(commit=True) as cursor2:
                 cursor2.execute(
@@ -73,23 +75,22 @@ def migrate_action_meta():
                             "k_p": float(meta["k_p"]),
                             "tags": meta["tags"],
                             "type": meta["type"],
-                            "v_prog": int(meta["vProg"]), # renamed
-                            "yaw": float(meta["azimuth"]), # renamed
-                            "gyro_end": float(meta["gyroEnd"]), # renamed
-                            "gyro_start": float(meta["gyroStart"]), # renamed
+                            "v_prog": int(meta["vProg"]),  # renamed
+                            "yaw": float(meta["azimuth"]),  # renamed
+                            "gyro_end": float(meta["gyroEnd"]),  # renamed
+                            "gyro_start": float(meta["gyroStart"]),  # renamed
                             "direction": float(meta["direction"]),
                             "good_enough": int(meta["good_enough"]),
                             "actual_ticks": int(meta["actual_ticks"]),
                             "profile_ticks": int(meta["profile_ticks"]),
                         },
-                        id
+                        record_id,
                     ),
                 )
 
     with get_db_cursor(commit=True) as cursor:
         cursor.execute("ALTER TABLE action DROP COLUMN measures")
         cursor.execute("ALTER TABLE action DROP COLUMN data")
-
 
 
 @click.command("db-migrate")

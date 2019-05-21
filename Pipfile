@@ -12,9 +12,11 @@ code = "code ."
 
 [dev-packages]
 pylint = "*"
-black = "*"
+black = "==19.3b0"
 rope = "*"
 python-dotenv = "*"
+neovim = "*"
+keeper = {editable = true,path = "."}
 
 [packages]
 pandas = "*"
@@ -30,4 +32,4 @@ psycopg2 = "*"
 python_version = "3.7"
 
 [pipenv]
-allow_prereleases = true
+allow_prereleases = false

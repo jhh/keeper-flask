@@ -1,8 +1,11 @@
+"""
+Top level Flask app for Keeper.
+"""
 import os
+from logging.config import dictConfig
 import pandas as pd
 from flask import Flask
 from dash import Dash
-from logging.config import dictConfig
 
 app = Dash(__name__)
 app.title = "Keeper"
@@ -11,7 +14,7 @@ server.config.from_object("keeper.default_settings")
 server.config.from_envvar("KEEPER_SETTINGS")
 app.config.suppress_callback_exceptions = True
 
-log_config = {
+LOG_CONFIG = {
     "version": 1,
     "formatters": {
         "debug": {"format": "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"},
@@ -35,8 +38,9 @@ log_config = {
     },
 }
 
-dictConfig(log_config)
+dictConfig(LOG_CONFIG)
 
+# pylint: disable=wrong-import-position
 import keeper.db
 import keeper.api
 import keeper.index

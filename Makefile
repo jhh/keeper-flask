@@ -28,3 +28,4 @@ copy-db: dump-db
 
 init-db: copy-db
 	psql < $(shell basename $(SQLFILE)) && rm $(shell basename $(SQLFILE))
+

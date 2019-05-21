@@ -1,4 +1,6 @@
-import json
+"""
+Keeper API endpoints for Trapper posts.
+"""
 import psycopg2
 from psycopg2.extras import Json, execute_values
 from flask import request
@@ -42,12 +44,7 @@ def post_action():
     with get_db_cursor(commit=True) as cursor:
         cursor.execute(
             ACTION_SQL,
-            (
-                doc["activity"],
-                doc["name"],
-                doc["meta"],
-                doc["traceMeasures"],
-            ),
+            (doc["activity"], doc["name"], doc["meta"], doc["traceMeasures"]),
         )
 
         action_id = cursor.fetchone()[0]
@@ -55,11 +52,7 @@ def post_action():
         values = [(action_id, data.pop(0), data) for data in doc["traceData"]]
 
         execute_values(
-            cursor,
-            TRACE_SQL,
-            values,
-            template="(%s, %s, %s)",
-            page_size=500,
+            cursor, TRACE_SQL, values, template="(%s, %s, %s)", page_size=500
         )
 
     return "OK - {}".format(action_id)

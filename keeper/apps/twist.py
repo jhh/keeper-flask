@@ -1,7 +1,9 @@
-from dash import Dash
+"""
+Flask Blueprint for Twist application.
+"""
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output
 from dash.exceptions import PreventUpdate
 import plotly.graph_objs as go
 import pandas as pd
@@ -29,8 +31,8 @@ def action_list():
         ]
 
 
-header = html.Div(className="pageHeader", children=[html.H1("Twist Plot")])
-controls = html.Div(
+HEADER = html.Div(className="pageHeader", children=[html.H1("Twist Plot")])
+CONTROLS = html.Div(
     className="twistControls",
     children=[
         dcc.Dropdown(id="primary-action-id", options=action_list()),
@@ -38,17 +40,18 @@ controls = html.Div(
         html.Button("Refresh", id="submit-button"),
     ],
 )
-graph = html.Div(className="twistGraph", children=dcc.Graph(id="twist-graph"))
-home = html.Div(className="indexLink", children=[dcc.Link("Go back to home", href="/")])
-store = dcc.Store(id="actions-list", storage_type="session")
+GRAPH = html.Div(className="twistGraph", children=dcc.Graph(id="twist-graph"))
+HOME = html.Div(className="indexLink", children=[dcc.Link("Go back to HOME", href="/")])
+STORE = dcc.Store(id="actions-list", storage_type="session")
 
 twist_layout = html.Div(
-    className="container", children=[header, controls, graph, home, store]
+    className="container", children=[HEADER, CONTROLS, GRAPH, HOME, STORE]
 )
 
 
 @app.callback(Output("actions-list", "data"), [Input("submit-button", "n_clicks")])
 def update_actions_list(n_clicks):
+    del n_clicks  # Unused
     return action_list()
 
 
