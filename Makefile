@@ -13,7 +13,7 @@ run:
 	@pipenv run dash
 
 requirements:
-	pipenv lock -r > $(HOME)/python/ansible/roles/keeper/files/requirements.txt
+	pipenv lock -r > $(HOME)/dev/jhh/ansible/roles/keeper/files/requirements.txt
 
 install: requirements
 	pipenv run sdist
